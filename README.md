@@ -1,6 +1,6 @@
 # BrightCache
 
-BrightCache use two layers od cache - L1 and L2.
+BrightCache use two layers of cache - L1 and L2.
 
 ## Why BrightCache
 
@@ -10,7 +10,7 @@ The main features of the BrithtCache are:
    and the client has to wait for the result. In BrightCache, the value is returned immediately from L2 and value
    refreshed in a separate thread.
    
-1. **Failure immunity extension** - If everything works, L1 returns relatively fresh data. However, L2 can store data 
+1. **Fault tolerance increased** - If everything works, L1 returns relatively fresh data. However, L2 can store data 
    for the long term, which makes the service more resistant to failures.
 
 ## Limitations
@@ -32,23 +32,29 @@ Under the hood, BrightCache uses a regular guava cache.
 
 ## How to use it
 
-Create BrightCache instance
+### Create BrightCache instance
 
 ```java
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import java.util.concurrent.TimeUnit;
+
+...
+
 Cache<String, User> l1Cache = CacheBuilder.newBuilder()
-   .maximumSize(properties.cacheSize)
+   .maximumSize(10)
    .expireAfterWrite(30, TimeUnit.MINUTES)
    .build();
 
 Cache<String, User> l2Cache = CacheBuilder.newBuilder()
-   .maximumSize(properties.cacheSize)
+   .maximumSize(20)
    .expireAfterWrite(24, TimeUnit.HOURS)
-   .build<String, User>();
+   .build();
 
-BrightCache brightCache = return BrightCache(l1Cache, l2Cache, cacheRefreshExecutor)
+BrightCache brightCache = new BrightCache(l1Cache, l2Cache, cacheRefreshExecutor)
 ```
 
-Simply get value from cache and provide fallback lambda
+### Get value from cache and provide fallback lambda
 
 ```java
 brightCache.get("Donald", () -> loadUserFromDb("Donald"))
