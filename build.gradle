@@ -1,6 +1,7 @@
 plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.4.32'
     id 'java-library'
+    id 'groovy'
 }
 
 group 'pl.tfij'
@@ -14,6 +15,7 @@ repositories {
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "com.github.ben-manes.caffeine:guava:3.0.2"
+    testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
 }
 
 tasks.named('jar') {
@@ -23,3 +25,6 @@ tasks.named('jar') {
     }
 }
 
+test {
+    useJUnitPlatform()
+}
