@@ -53,11 +53,23 @@ class TestCacheEventHandler implements CacheEventHandler {
         counters[key] = counter+1
     }
 
+    void reset() {
+        counters.removeAll { true }
+    }
+
     int l1HitCounter() {
         return counters["l1Hit"] ?: 0
     }
 
     int l1MissCounter() {
         return counters["l1Miss"] ?: 0
+    }
+
+    int l2HitCounter() {
+        return counters["l2Hit"] ?: 0
+    }
+
+    int l2MissCounter() {
+        return counters["l2Miss"] ?: 0
     }
 }
