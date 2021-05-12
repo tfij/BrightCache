@@ -6,7 +6,7 @@ import groovy.transform.CompileStatic
 class DummyUserProviderWithCount {
     private final Map<String, Integer> counters = new HashMap<>()
 
-    User load(String id) {
+    User randomUser(String id) {
         increaseCounter(id)
         return new User(id, "sampleFirstName${UUID.randomUUID().toString()}")
     }
@@ -18,5 +18,9 @@ class DummyUserProviderWithCount {
     private void increaseCounter(String id) {
         int counter = counters.getOrDefault(id, 0)
         counters[id] = counter + 1
+    }
+
+    void reset() {
+        counters.removeAll { true }
     }
 }
