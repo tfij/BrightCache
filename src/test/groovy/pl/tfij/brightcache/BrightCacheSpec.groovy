@@ -3,7 +3,7 @@ package pl.tfij.brightcache
 import com.google.common.cache.Cache
 import com.google.common.cache.CacheBuilder
 import pl.tfij.brightcache.fixture.DummyUserProviderWithCount
-import pl.tfij.brightcache.fixture.SelfExecutorService
+import pl.tfij.brightcache.fixture.SelfThreadExecutorService
 import pl.tfij.brightcache.fixture.TestCacheEventHandler
 import pl.tfij.brightcache.fixture.User
 import spock.lang.Specification
@@ -81,13 +81,13 @@ class BrightCacheSpec extends Specification {
         handler.l2MissCounter() == 0
         handler.l2HitCounter() == 1
 
-        and: "value loader function was invoked"
+        and: "value loader function was invoked (async value refresh)"
         valueLoaderWithCount.counter("sampleKey") == 1
 
         when: "I again try to get value from the cache"
         User user3 = cache.get("sampleKey", { valueLoaderWithCount.randomUser(it) })
 
-        then: "returned value is recalculated"
+        then: "returned value is refreshed"
         user1 != user3
 
         and: "value is returned from L1 cache"
@@ -119,7 +119,7 @@ class BrightCacheSpec extends Specification {
     }
 
     private static ExecutorService sampleExecutorService() {
-        return new SelfExecutorService()
+        return new SelfThreadExecutorService()
     }
 
 }

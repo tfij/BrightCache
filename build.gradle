@@ -2,29 +2,101 @@ plugins {
     id 'org.jetbrains.kotlin.jvm' version '1.4.32'
     id 'java-library'
     id 'groovy'
+    id 'maven-publish'
+    id 'signing'
+    id 'pl.allegro.tech.build.axion-release' version '1.13.2'
 }
 
 group 'pl.tfij'
-archivesBaseName = "bright-cache"
-version '1.0-SNAPSHOT'
+archivesBaseName = 'bright-cache'
+version scmVersion.version
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    implementation "com.github.ben-manes.caffeine:guava:3.0.2"
-    testImplementation "org.spockframework:spock-core:2.0-M5-groovy-3.0"
+    implementation 'org.jetbrains.kotlin:kotlin-stdlib'
+    implementation 'com.github.ben-manes.caffeine:guava:3.0.2'
+    testImplementation 'org.spockframework:spock-core:2.0-M5-groovy-3.0'
 }
 
 tasks.named('jar') {
     manifest {
-        attributes('Implementation-Title': project.name,
-                'Implementation-Version': project.version)
+        attributes(
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version
+        )
     }
 }
 
 test {
     useJUnitPlatform()
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        sonatype(MavenPublication) {
+            artifactId = 'bright-cache'
+            from components.java
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+            pom {
+                name = 'bright-cache'
+                description = 'Simple two layer cache.'
+                url = 'https://github.com/tfij/BrightCache'
+                licenses {
+                    license {
+                        name.set('The Apache License, Version 2.0')
+                        url.set('http://www.apache.org/licenses/LICENSE-2.0.txt')
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'tfij'
+                        name = 'Tomasz Fijakowski'
+                        email = 'tomasz@chi.pl'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/tfij/result.git'
+                    developerConnection = 'scm:git:https://github.com/tfij/result.git'
+                    url = 'https://github.com/tfij/result.git'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url = (version.toString().endsWith('SNAPSHOT')) ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = project.properties.get('ossrhUsername')
+                password = project.properties.get('ossrhPassword')
+            }
+        }
+    }
+}
+
+signing {
+    useGpgCmd()
+    sign publishing.publications.sonatype
+}
+
+javadoc {
+    if(JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
 }
