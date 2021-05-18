@@ -90,9 +90,15 @@ publishing {
     }
 }
 
-signing {
-    useGpgCmd()
-    sign publishing.publications.sonatype
+if (System.getenv('GPG_KEY_ID')) {
+    signing {
+        useInMemoryPgpKeys(
+                project.properties.get("GPG_KEY_ID"),
+                project.properties.get("GPG_PRIVATE_KEY"),
+                project.properties.get("GPG_PRIVATE_KEY_PASSWORD")
+        )
+        sign publishing.publications.sonatype
+    }
 }
 
 javadoc {
