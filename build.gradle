@@ -90,12 +90,12 @@ publishing {
     }
 }
 
-if (System.getenv('GPG_KEY_ID')) {
+if (!(project.properties.get('GPG_KEY_ID') as String).isEmpty()) {
     signing {
         useInMemoryPgpKeys(
-                project.properties.get("GPG_KEY_ID"),
-                project.properties.get("GPG_PRIVATE_KEY"),
-                project.properties.get("GPG_PRIVATE_KEY_PASSWORD")
+                project.properties.get("GPG_KEY_ID") as String,
+                project.properties.get("GPG_PRIVATE_KEY") as String,
+                project.properties.get("GPG_PRIVATE_KEY_PASSWORD") as String
         )
         sign publishing.publications.sonatype
     }
