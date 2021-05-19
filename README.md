@@ -1,6 +1,7 @@
 # BrightCache
 
 BrightCache use two layers of cache - L1 and L2.
+BrightCache is written in kotlin, however, it can be used successfully with java (all tests are in groovy).
 
 ## Why BrightCache
 
@@ -32,6 +33,24 @@ Under the hood, BrightCache uses a regular guava cache.
 
 ## How to use it
 
+### Library dependency
+
+#### Maven
+
+```xml
+<dependency>
+    <groupId>pl.tfij</groupId>
+    <artifactId>bright-cache</artifactId>
+    <version>1.0</version>
+</dependency>
+```
+
+#### Gradle
+
+```groovy
+implementation 'pl.tfij:bright-cache:1.0.0'
+```
+
 ### Create BrightCache instance
 
 ```java
@@ -51,13 +70,15 @@ Cache<String, User> l2Cache = CacheBuilder.newBuilder()
    .expireAfterWrite(24, TimeUnit.HOURS)
    .build();
 
-BrightCache brightCache = new BrightCache(l1Cache, l2Cache, cacheRefreshExecutor)
+ExecutorService cacheRefreshExecutor = Executors.newFixedThreadPool(10); // use to refresh L2 cache at background
+
+BrightCache brightCache = new BrightCache(l1Cache, l2Cache, cacheRefreshExecutor);
 ```
 
 ### Get value from cache and provide fallback lambda
 
 ```java
-brightCache.get("Donald", () -> loadUserFromDb("Donald"))
+brightCache.get("Donald", () -> loadUserFromDb("Donald"));
 ```
 
 ## Cache metrics and error logging
