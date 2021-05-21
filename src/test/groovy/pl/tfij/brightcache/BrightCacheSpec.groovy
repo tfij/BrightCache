@@ -1,7 +1,6 @@
 package pl.tfij.brightcache
 
 import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
 import pl.tfij.brightcache.fixture.DummyUserProviderWithCount
 import pl.tfij.brightcache.fixture.SelfThreadExecutorService
 import pl.tfij.brightcache.fixture.TestCacheEventHandler
@@ -9,7 +8,9 @@ import pl.tfij.brightcache.fixture.User
 import spock.lang.Specification
 
 import java.util.concurrent.ExecutorService
-import java.util.concurrent.TimeUnit
+
+import static pl.tfij.brightcache.fixture.SampleBrightCacheFactory.sampleL1Cache
+import static pl.tfij.brightcache.fixture.SampleBrightCacheFactory.sampleL2Cache
 
 class BrightCacheSpec extends Specification {
 
@@ -102,20 +103,6 @@ class BrightCacheSpec extends Specification {
         Cache<String, User> l2Cache = sampleL2Cache()
         ExecutorService cacheRefreshExecutor = sampleExecutorService()
         return new BrightCache<>(l1Cache, l2Cache, cacheRefreshExecutor, handler)
-    }
-
-    private static Cache<String, User> sampleL1Cache() {
-        return CacheBuilder.newBuilder()
-                .maximumSize(10)
-                .expireAfterWrite(30, TimeUnit.MINUTES)
-                .build()
-    }
-
-    private static Cache<String, User> sampleL2Cache() {
-        return CacheBuilder.newBuilder()
-                .maximumSize(10)
-                .expireAfterWrite(24, TimeUnit.HOURS)
-                .build()
     }
 
     private static ExecutorService sampleExecutorService() {

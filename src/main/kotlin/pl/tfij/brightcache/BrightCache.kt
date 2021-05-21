@@ -1,6 +1,8 @@
 package pl.tfij.brightcache
 
 import com.google.common.cache.Cache
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ExecutorService
 
 class BrightCache<K: Any, V>(
@@ -8,6 +10,8 @@ class BrightCache<K: Any, V>(
     private val l2Cache: Cache<K, V>,
     private val executor: ExecutorService,
     private val cacheEventHandler: CacheEventHandler<K, V>) {
+
+    private val keysWithCalculatingValues = ConcurrentHashMap.newKeySet<K>()
 
     constructor(
         l1Cache: Cache<K, V>,
@@ -17,17 +21,17 @@ class BrightCache<K: Any, V>(
     fun get(key: K, valueLoader: (K) -> V): V {
         val value = l1Cache.getIfPresent(key)
         return if (value != null) {
-            cacheEventHandler.handleL1Hit(key)
+            cacheEventHandler.onL1HitOccurred(key)
             value
         } else {
-            cacheEventHandler.handleL1Miss(key)
+            cacheEventHandler.onL1MissOccurred(key)
             val valueL2 = l2Cache.getIfPresent(key)
             return if (valueL2 != null) {
-                cacheEventHandler.handleL2Hit(key)
+                cacheEventHandler.onL2HitOccurred(key)
                 refreshValueAsync(key, valueLoader)
                 valueL2
             } else {
-                cacheEventHandler.handleL2Miss(key)
+                cacheEventHandler.onL2MissOccurred(key)
                 loadValue(key, valueLoader)
             }
         }
@@ -35,9 +39,17 @@ class BrightCache<K: Any, V>(
 
     private fun refreshValueAsync(key: K, valueLoader: (K) -> V) {
         try {
-            executor.submit { loadValue(key, valueLoader) }
+            val isAdded = keysWithCalculatingValues.add(key)
+            if (isAdded) {
+                cacheEventHandler.onAsyncValueLoaderTriggeredOccurred(key)
+                CompletableFuture.supplyAsync({ loadValue(key, valueLoader) }, executor)
+                    .whenComplete { _, _ -> keysWithCalculatingValues.remove(key) }
+            } else {
+                cacheEventHandler.onAsyncValueSkippedOccurred(key)
+            }
         } catch (ex: Exception) {
-            cacheEventHandler.handleAsyncValueLoaderError(key, ex)
+            keysWithCalculatingValues.remove(key)
+            cacheEventHandler.onAsyncValueLoaderErrorOccurred(key, ex)
         }
     }
 
@@ -47,11 +59,11 @@ class BrightCache<K: Any, V>(
                 val newValue = valueLoader(key)
                 l1Cache.put(key, newValue)
                 l2Cache.put(key, newValue)
-                cacheEventHandler.handleValueLoaderSucceed(key, newValue)
+                cacheEventHandler.onValueLoaderSucceedOccurred(key, newValue)
                 newValue
             }
         } catch (ex: Exception) {
-            cacheEventHandler.handleValueLoaderError(key, ex)
+            cacheEventHandler.onValueLoaderErrorOccurred(key, ex)
             throw ex
         }
     }
@@ -61,7 +73,7 @@ class BrightCache<K: Any, V>(
             try {
                 return action()
             } catch (ex: Exception) {
-                cacheEventHandler.handleRetryError(i, ex)
+                cacheEventHandler.onRetryErrorOccurred(i, ex)
             }
         }
         throw Exception("Retry counter is exceeded.")

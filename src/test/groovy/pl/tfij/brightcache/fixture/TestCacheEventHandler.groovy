@@ -1,7 +1,6 @@
 package pl.tfij.brightcache.fixture
 
 import groovy.transform.CompileStatic
-import org.jetbrains.annotations.NotNull
 import pl.tfij.brightcache.CacheEventHandler
 
 @CompileStatic
@@ -9,43 +8,53 @@ class TestCacheEventHandler implements CacheEventHandler {
     private final Map<String, Integer> counters = new HashMap<>()
 
     @Override
-    void handleL1Hit(Object key) {
+    void onL1HitOccurred(Object key) {
         increaseCounter("l1Hit")
     }
 
     @Override
-    void handleL1Miss(Object key) {
+    void onL1MissOccurred(Object key) {
         increaseCounter("l1Miss")
     }
 
     @Override
-    void handleL2Hit(Object key) {
+    void onL2HitOccurred(Object key) {
         increaseCounter("l2Hit")
     }
 
     @Override
-    void handleL2Miss(Object key) {
+    void onL2MissOccurred(Object key) {
         increaseCounter("l2Hit")
     }
 
     @Override
-    void handleAsyncValueLoaderError(Object key, @NotNull Exception ex) {
+    void onAsyncValueLoaderErrorOccurred(Object key, Exception ex) {
         increaseCounter("asyncValueLoaderError")
     }
 
     @Override
-    void handleValueLoaderSucceed(Object key, Object loadedValue) {
+    void onValueLoaderSucceedOccurred(Object key, Object loadedValue) {
         increaseCounter("valueLoaderSucceed")
     }
 
     @Override
-    void handleValueLoaderError(Object key, @NotNull Exception ex) {
+    void onValueLoaderErrorOccurred(Object key, Exception ex) {
         increaseCounter("valueLoaderError")
     }
 
     @Override
-    void handleRetryError(int tryNumber, @NotNull Exception ex) {
+    void onRetryErrorOccurred(int tryNumber, Exception ex) {
         increaseCounter("retryError")
+    }
+
+    @Override
+    void onAsyncValueSkippedOccurred(Object key) {
+        increaseCounter("asyncValueSkip")
+    }
+
+    @Override
+    void onAsyncValueLoaderTriggeredOccurred(Object key) {
+        increaseCounter("asyncValueLoaderTriggered")
     }
 
     private void increaseCounter(String key) {
@@ -71,5 +80,13 @@ class TestCacheEventHandler implements CacheEventHandler {
 
     int l2MissCounter() {
         return counters["l2Miss"] ?: 0
+    }
+
+    int asyncValueSkippedCounter() {
+        return  counters["asyncValueSkip"] ?: 0
+    }
+
+    int asyncValueLoaderTriggeredCounter() {
+        return  counters["asyncValueLoaderTriggered"] ?: 0
     }
 }
