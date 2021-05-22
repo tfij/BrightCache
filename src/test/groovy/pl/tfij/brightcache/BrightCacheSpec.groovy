@@ -98,6 +98,37 @@ class BrightCacheSpec extends Specification {
         handler.l2HitCounter() == 1
     }
 
+    def "Should cache and refresh value on multiple evictions (verify if internal `BrightCache.keysWithCalculatingValues` set is correctly management)"() {
+        given: "configured cache"
+        Cache<String, User> l1Cache = sampleL1Cache()
+        Cache<String, User> l2Cache = sampleL2Cache()
+        ExecutorService cacheRefreshExecutor = sampleExecutorService()
+        TestCacheEventHandler handler = new TestCacheEventHandler()
+        BrightCache<String, User> cache = new BrightCache<>(l1Cache, l2Cache, cacheRefreshExecutor, handler)
+
+        and: "dummy user provider"
+        DummyUserProviderWithCount valueLoaderWithCount = new DummyUserProviderWithCount()
+
+        and: "a user is cached both in L1 and L2"
+        cache.get("sampleKey", { valueLoaderWithCount.randomUser(it) })
+
+        and: "L1 expired"
+        l1Cache.invalidateAll()
+
+        and: "I get value from the cache and trigger value loader call"
+        cache.get("sampleKey", { valueLoaderWithCount.randomUser(it) })
+
+        and: "L1 expired again"
+        l1Cache.invalidateAll()
+
+        when: "I try to get value from the cache"
+        User user4 = cache.get("sampleKey", { valueLoaderWithCount.randomUser(it) })
+        User user5 = cache.get("sampleKey", { valueLoaderWithCount.randomUser(it) })
+
+        then: "user4 is from L2 and uer5 is the last refreshed value"
+        user4 != user5
+    }
+
     private static BrightCache<String, User> sampleBrightCache(TestCacheEventHandler handler) {
         Cache<String, User> l1Cache = sampleL1Cache()
         Cache<String, User> l2Cache = sampleL2Cache()

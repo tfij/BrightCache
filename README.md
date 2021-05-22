@@ -41,14 +41,14 @@ Under the hood, BrightCache uses a regular guava cache.
 <dependency>
     <groupId>pl.tfij</groupId>
     <artifactId>bright-cache</artifactId>
-    <version>1.0</version>
+    <version>1.1.0</version>
 </dependency>
 ```
 
 #### Gradle
 
 ```groovy
-implementation 'pl.tfij:bright-cache:1.0.0'
+implementation 'pl.tfij:bright-cache:1.1.0'
 ```
 
 ### Create BrightCache instance
