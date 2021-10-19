@@ -27,7 +27,7 @@ class BrightCacheAsyncRefreshSpec extends Specification {
         String firstUserId = "sampleUserId-1"
         ThreadSafeSlowUserProviderWithCount firstUserProvider = new ThreadSafeSlowUserProviderWithCount(firstUserId)
 
-        and: "another slow user provider provider with counter"
+        and: "another slow user provider with counter"
         String secondUserId = "sampleUserId-2"
         ThreadSafeSlowUserProviderWithCount secondUserProvider = new ThreadSafeSlowUserProviderWithCount(secondUserId)
 
@@ -52,8 +52,8 @@ class BrightCacheAsyncRefreshSpec extends Specification {
         secondUserProvider.markAsReady()
 
         then: "async function was call once for each user"
-        firstUserProvider.counter == 1
-        secondUserProvider.counter == 1
+        new PollingConditions().within(1) { firstUserProvider.counter == 1 }
+        new PollingConditions().within(1) { secondUserProvider.counter == 1 }
     }
 
 }
