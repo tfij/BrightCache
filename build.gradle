@@ -17,7 +17,7 @@ repositories {
 
 dependencies {
     implementation 'org.jetbrains.kotlin:kotlin-stdlib'
-    implementation 'com.google.guava:guava:33.2.1-jre'
+    implementation 'com.google.guava:guava:33.3.0-jre'
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 }
 
